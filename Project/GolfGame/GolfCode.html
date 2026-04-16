@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mini Golf Shot</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #4caf50;
+    color: white;
+  }
+  canvas {
+    background: #2e7d32;
+    border: 3px solid white;
+    margin-top: 20px;
+  }
+  #powerBar {
+    width: 300px;
+    height: 20px;
+    background: #ccc;
+    margin: 10px auto;
+    position: relative;
+  }
+  #power {
+    height: 100%;
+    width: 0%;
+    background: red;
+  }
+  button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<h1>🏌️ Mini Golf Shot</h1>
+<p>Press and hold "Shoot" to build power, release to hit the ball!</p>
+
+<div id="powerBar">
+  <div id="power"></div>
+</div>
+
+<button id="shootBtn">Hold to Shoot</button>
+
+<canvas id="gameCanvas" width="600" height="300"></canvas>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+let ball = { x: 50, y: 150, radius: 8, dx: 0 };
+let hole = { x: 550, y: 150, radius: 12 };
+
+let charging = false;
+let power = 0;
+let maxPower = 15;
+
+const powerBar = document.getElementById("power");
+const btn = document.getElementById("shootBtn");
+
+// Power charging
+btn.addEventListener("mousedown", () => charging = true);
+btn.addEventListener("mouseup", shoot);
+
+btn.addEventListener("touchstart", () => charging = true);
+btn.addEventListener("touchend", shoot);
+
+function shoot() {
+  charging = false;
+  ball.dx = power;
+  power = 0;
+}
+
+// Game loop
+function update() {
+  // Charge power
+  if (charging) {
+    power += 0.3;
+    if (power > maxPower) power = maxPower;
+  }
+
+  powerBar.style.width = (power / maxPower * 100) + "%";
+
+  // Move ball
+  ball.x += ball.dx;
+
+  // Friction
+  ball.dx *= 0.98;
+
+  // Stop if very slow
+  if (Math.abs(ball.dx) < 0.05) ball.dx = 0;
+
+  // Check win
+  let dist = Math.hypot(ball.x - hole.x, ball.y - hole.y);
+  if (dist < hole.radius) {
+    alert("🏆 Hole in one!");
+    resetGame();
+  }
+}
+
+// Reset
+function resetGame() {
+  ball.x = 50;
+  ball.dx = 0;
+}
+
+// Draw
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Hole
+  ctx.beginPath();
+  ctx.arc(hole.x, hole.y, hole.radius, 0, Math.PI * 2);
+  ctx.fillStyle = "black";
+  ctx.fill();
+
+  // Ball
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+  ctx.fillStyle = "white";
+  ctx.fill();
+}
+
+// Loop
+function gameLoop() {
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+</script>
+
+</body>
+</html>
